@@ -11,6 +11,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.util.List;
+
 public class RegistrationActivity extends AppCompatActivity {
 
     private Button loginB;
@@ -52,6 +54,10 @@ public class RegistrationActivity extends AppCompatActivity {
 
             // ** INSERT ON CLICK REGISTRATION IMPLEMENTATION HERE **
 
+
+            Intent intent = new Intent(view.getContext(), ListActivity.class);
+            startActivity(intent);
+            finish();
         }
     }
 }

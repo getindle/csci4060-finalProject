@@ -14,6 +14,7 @@ import androidx.core.view.WindowInsetsCompat;
 public class LoginActivity extends AppCompatActivity {
 
     private Button loginB;
+    private Button backToRegisterB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,9 +28,11 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         loginB = findViewById(R.id.loginB);
+        backToRegisterB = findViewById(R.id.backToRegisterB);
 
         // Set click listeners
         loginB.setOnClickListener(new LoginActivity.LoginButtonClickListener());
+        backToRegisterB.setOnClickListener(new LoginActivity.BackToRegisterButtonClickListener());
 
     }
 
@@ -44,6 +47,19 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(intent); // start the new activity
             finish();
 
+        }
+    }
+
+    private class BackToRegisterButtonClickListener implements View.OnClickListener {
+        @Override
+        public void onClick(View view) {
+
+            // ** INSERT FIREBASE ON CLICK LOGIN IMPLEMENTATION HERE **
+            // (if needed)
+
+            Intent intent = new Intent(view.getContext(), RegistrationActivity.class);
+            startActivity(intent); // start the new activity
+            finish();
         }
     }
 }

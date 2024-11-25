@@ -1,14 +1,12 @@
 package edu.uga.cs.roommateshoppinglist;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,14 +14,25 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-public class ListActivity extends AppCompatActivity {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ShoppingListActivity extends AppCompatActivity implements AddItemDialogFragment.AddItemDialogListener {
+
+    public static final String TAG = "ShoppingListActivity";
 
     // instance variables to set up hamburger icon
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle toggle;
+
+    private List<Item> shoppingList;
+    RecyclerView recyclerView;
+    ItemRecyclerViewAdapter itemRecyclerViewAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,14 +51,25 @@ public class ListActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
+        // Initialize Recycler
+        recyclerView = findViewById(R.id.recyclerView);
+        shoppingList = new ArrayList<>();
+        itemRecyclerViewAdapter = new ItemRecyclerViewAdapter(this, shoppingList);
+        recyclerView.setAdapter(itemRecyclerViewAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
         // create drawer
         drawerLayout = findViewById(R.id.drawer_layout);
         toggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.open_drawer, R.string.close_drawer);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState(); // sync state so "hamburger icon" shows instead of "back arrow"
 
-        // inflate list with button options
-        String[] drawerItems = {"Recently Purchased", "Button 2", "Help"};
+        // Inflate list with button options
+        String[] drawerItems = {
+                "Recently Purchased",
+                "Help",
+                "Logout"};
+
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, drawerItems);
         ListView drawerList = findViewById(R.id.drawer_list);
         drawerList.setAdapter(arrayAdapter);
@@ -72,15 +92,30 @@ public class ListActivity extends AppCompatActivity {
 
         // set up floating action button
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new ListActivity.FloatingActionButtonClickListener());
+        fab.setOnClickListener(new ShoppingListActivity.FloatingActionButtonClickListener());
     }
 
+
+    /*
+    Opens a dialog fragment to add a new item to the list.
+     */
     private class FloatingActionButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
-            Toast.makeText(ListActivity.this, "FAB clicked", Toast.LENGTH_SHORT).show();
-            // ADD FLOATING ACTION BUTTON "ON CLICK" HERE
+            AddItemDialogFragment dialogFragment = new AddItemDialogFragment();
+            dialogFragment.setShoppingListActivity(ShoppingListActivity.this);
+            dialogFragment.show(getSupportFragmentManager(), "AddItemFragment");
+
         }
+    }
+
+    public void saveNewItem(Item item) {
+        Log.d(TAG, "ShoppingListActivity.saveNewItem");
+
+        shoppingList.add(item);
+        itemRecyclerViewAdapter.sync(item);
+        itemRecyclerViewAdapter.notifyItemInserted(shoppingList.size() - 1);
+        recyclerView.smoothScrollToPosition(shoppingList.size() - 1);
     }
 
     @Override

@@ -74,7 +74,7 @@ public class LoginActivity extends AppCompatActivity {
                                 FirebaseUser user = mAuth.getCurrentUser();
 
                                 // Enter main application page
-                                Intent intent = new Intent(LoginActivity.this, ListActivity.class);
+                                Intent intent = new Intent(LoginActivity.this, ShoppingListActivity.class);
                                 startActivity(intent); // start the new activity
                             } else {
                                 // If sign in fails, display a message to the user.

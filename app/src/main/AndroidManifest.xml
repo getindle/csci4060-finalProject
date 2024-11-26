@@ -20,7 +20,7 @@
             android:name=".RegistrationActivity"
             android:exported="false" />
         <activity
-            android:name=".ListActivity"
+            android:name=".ShoppingListActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

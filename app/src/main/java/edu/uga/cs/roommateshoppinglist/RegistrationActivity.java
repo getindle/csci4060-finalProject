@@ -87,7 +87,7 @@ public class RegistrationActivity extends AppCompatActivity {
                                 FirebaseUser user = mAuth.getCurrentUser();
 
                                 // Enter main application page
-                                Intent intent = new Intent(RegistrationActivity.this, ListActivity.class);
+                                Intent intent = new Intent(RegistrationActivity.this, ShoppingListActivity.class);
                                 startActivity(intent);
                             } else {
                                 // If sign in fails, display a message to the user.

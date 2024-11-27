@@ -1,7 +1,11 @@
 package edu.uga.cs.roommateshoppinglist;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
+import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -34,6 +38,8 @@ public class ShoppingListActivity extends AppCompatActivity implements AddItemDi
     RecyclerView recyclerView;
     ItemRecyclerViewAdapter itemRecyclerViewAdapter;
 
+    private List<Item> cartItems;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,7 +57,9 @@ public class ShoppingListActivity extends AppCompatActivity implements AddItemDi
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        // Initialize Recycler
+        cartItems = new ArrayList<>();
+
+        // initialize recycler
         recyclerView = findViewById(R.id.recyclerView);
         shoppingList = new ArrayList<>();
         itemRecyclerViewAdapter = new ItemRecyclerViewAdapter(this, shoppingList);
@@ -64,7 +72,7 @@ public class ShoppingListActivity extends AppCompatActivity implements AddItemDi
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState(); // sync state so "hamburger icon" shows instead of "back arrow"
 
-        // Inflate list with button options
+        // inflate list with button options
         String[] drawerItems = {
                 "Recently Purchased",
                 "Help",
@@ -123,6 +131,37 @@ public class ShoppingListActivity extends AppCompatActivity implements AddItemDi
         if (toggle.onOptionsItemSelected(item)) {
             return true;
         }
-        return super.onOptionsItemSelected(item);
+
+        if (item.getItemId() == R.id.action_cart) {
+            showCartDialogAlert(); // newly created method to show basket contents
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.cart, menu); // inflate cart picture in action bar
+        return true;
+    }
+
+    /**
+     * Adds an item from the shopping list into the cart (basket).
+     *
+     * @param item the item to be added
+     */
+    public void addToCart(Item item) {
+        if (!cartItems.contains(item)) {
+            cartItems.add(item); // add item to cart/basket
+        } else {
+            Log.d(TAG, "Item already in cart: " + item.getItemName());
+        }
+    }
+
+    private void showCartDialogAlert() {
+        CartDialogFragment cartDialogFragment = new CartDialogFragment(cartItems);
+        cartDialogFragment.show(getSupportFragmentManager(), "cartDialog");
+
     }
 }

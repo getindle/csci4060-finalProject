@@ -84,10 +84,12 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
         holder.addToCart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                if (context instanceof ShoppingListActivity) {
+                    // call addToCart method located in ShoppingListActivity
+                    ((ShoppingListActivity) context).addToCart(item);
+                }
             }
         });
-
     }
 
     /*
@@ -97,5 +99,4 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
     public int getItemCount() {
         return shoppingList.size();
     }
-
 }

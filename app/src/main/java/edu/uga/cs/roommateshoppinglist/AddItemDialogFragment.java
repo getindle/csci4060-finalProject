@@ -24,7 +24,6 @@ public class AddItemDialogFragment extends DialogFragment {
     private ShoppingListActivity shoppingListActivity;
     private EditText itemName;
     private EditText itemQuantity;
-    private EditText itemPrice;
     private Button saveButton;
 
     public interface AddItemDialogListener {
@@ -43,7 +42,6 @@ public class AddItemDialogFragment extends DialogFragment {
 
         itemName = getView().findViewById(R.id.itemName);
         itemQuantity = getView().findViewById(R.id.itemQuantity);
-        itemPrice = getView().findViewById(R.id.itemPrice);
         saveButton = getView().findViewById(R.id.saveButton);
 
         saveButton.setOnClickListener(new View.OnClickListener() {
@@ -52,10 +50,9 @@ public class AddItemDialogFragment extends DialogFragment {
                 // Get user input
                 String name = itemName.getText().toString();
                 String quantity = itemQuantity.getText().toString();
-                String price = itemPrice.getText().toString();
 
                 // Add the new item
-                shoppingListActivity.saveNewItem(new Item(name, quantity, price));
+                shoppingListActivity.saveNewItem(new Item(name, quantity));
 
                 // Close the dialog fragment
                 dismiss();

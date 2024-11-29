@@ -11,6 +11,8 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,7 +23,13 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +47,9 @@ public class ShoppingListActivity extends AppCompatActivity implements AddItemDi
     ItemRecyclerViewAdapter itemRecyclerViewAdapter;
 
     private List<Item> cartItems;
+
+    private FirebaseDatabase database;
+    private DatabaseReference myRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +76,59 @@ public class ShoppingListActivity extends AppCompatActivity implements AddItemDi
         itemRecyclerViewAdapter = new ItemRecyclerViewAdapter(this, shoppingList);
         recyclerView.setAdapter(itemRecyclerViewAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        // Initialize database
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference();
+
+        // Set up a listener that listens for changes in Firebase
+        ChildEventListener childEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+               Log.d(TAG, "onChildAdded: " + snapshot.getKey());
+
+                Item newItem = snapshot.getValue(Item.class);
+                newItem.setItemKey(snapshot.getKey());
+                shoppingList.add(newItem);
+                // itemRecyclerViewAdapter.sync(newItem);
+                itemRecyclerViewAdapter.notifyItemInserted(shoppingList.size() - 1);
+                recyclerView.smoothScrollToPosition(shoppingList.size() - 1);
+
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                Log.d(TAG, "onChildChanged: " + snapshot.getKey());
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                Log.d(TAG, "onChildRemoved: " + snapshot.getKey());
+
+                Item deletedItem = snapshot.getValue(Item.class);
+
+                int deletedItemIndex = 0;
+                for (int i = 0; i < shoppingList.size(); i++) {
+                    if (shoppingList.get(i).equals(snapshot.getKey())) {
+                        deletedItemIndex = i;
+                        shoppingList.remove(i);
+                        break;
+                    }
+                }
+                itemRecyclerViewAdapter.notifyItemRemoved(deletedItemIndex);
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        };
+        myRef.child("shopping_list").addChildEventListener(childEventListener);
 
         // create drawer
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -105,7 +169,7 @@ public class ShoppingListActivity extends AppCompatActivity implements AddItemDi
 
 
     /*
-    Opens a dialog fragment to add a new item to the list.
+    Opens a dialog fragment to add a new item to the shopping list.
      */
     private class FloatingActionButtonClickListener implements View.OnClickListener {
         @Override
@@ -117,13 +181,21 @@ public class ShoppingListActivity extends AppCompatActivity implements AddItemDi
         }
     }
 
+    /*
+    Update the shopping list with the new item by displaying to user and saving item in Firebase.
+     */
     public void saveNewItem(Item item) {
         Log.d(TAG, "ShoppingListActivity.saveNewItem");
 
-        shoppingList.add(item);
-        itemRecyclerViewAdapter.sync(item);
-        itemRecyclerViewAdapter.notifyItemInserted(shoppingList.size() - 1);
-        recyclerView.smoothScrollToPosition(shoppingList.size() - 1);
+//        FirebaseDatabase database = FirebaseDatabase.getInstance();
+//        DatabaseReference itemRef = myRef.child("items");
+//        DatabaseReference newItemRef = itemRef.push();
+//        myRef.push().setValue(item);
+
+        // Add a new item to the shopping list in the database
+        DatabaseReference newRef = myRef.child("shopping_list").push();
+        newRef.setValue(item).addOnSuccessListener(unused -> Log.d(TAG, "Item added successfully"));
+
     }
 
     @Override

@@ -4,12 +4,21 @@ public class Item {
 
     private String itemName;
     private String itemQuantity;
-    private String itemPrice;
+    private String itemKey;
 
-    public Item(String itemName, String itemQuantity, String itemPrice) {
+    public Item() {
+
+    }
+
+    public Item(String itemName, String itemQuantity) {
+        this(itemName, itemQuantity, null);
+    }
+
+
+    public Item(String itemName, String itemQuantity, String itemKey) {
         this.itemName = itemName;
         this.itemQuantity = itemQuantity;
-        this.itemPrice = itemPrice;
+        this.itemKey = itemKey;
     }
 
     public void setItemName(String itemName) {
@@ -20,6 +29,10 @@ public class Item {
         this.itemQuantity = itemQuantity;
     }
 
+    public void setItemKey(String itemKey) {
+        this.itemKey = itemKey;
+    }
+
     public String getItemName() {
         return itemName;
     }
@@ -28,6 +41,12 @@ public class Item {
         return itemQuantity;
     }
 
-    public String getItemPrice() { return itemPrice; }
+    public String getItemKey() { return itemKey; }
+
+    public boolean equals(String itemKey) {
+
+        return this.itemKey.equals(itemKey);
+    }
+
 
 }

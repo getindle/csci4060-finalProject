@@ -23,7 +23,8 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
 
     public ItemRecyclerViewAdapter(Context context, List<Item> shoppingList) {
         this.context = context;
-        this.shoppingList = new ArrayList<>(shoppingList);
+        // this.shoppingList = new ArrayList<>(shoppingList);
+        this.shoppingList = shoppingList;
     }
 
     public void sync(Item item) {
@@ -34,7 +35,6 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
 
         TextView cardName;
         TextView cardQuantity;
-        TextView cardPrice;
         Button editCard;
         Button addToCart;
 
@@ -43,7 +43,6 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
 
             cardName = itemView.findViewById(R.id.cardName);
             cardQuantity = itemView.findViewById(R.id.cardQuantity);
-            cardPrice = itemView.findViewById(R.id.cardPrice);
             editCard = itemView.findViewById(R.id.editCard);
             addToCart = itemView.findViewById(R.id.addToCart);
         }
@@ -72,7 +71,6 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
 
         holder.cardName.setText(item.getItemName());
         holder.cardQuantity.setText(String.format("%s%s", context.getString(R.string.quantity), item.getItemQuantity()));
-        holder.cardPrice.setText(String.format("%s%s", context.getString(R.string.price), item.getItemPrice()));
 
         holder.editCard.setOnClickListener(new View.OnClickListener() {
             @Override

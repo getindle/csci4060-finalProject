@@ -24,7 +24,7 @@ public class ItemRecyclerViewAdapter
     private AddToCartListener cartListener;
     private EditItemListener editListener;
     private RemoveFromCartListener removeListener;
-    private static String itemType;
+    private String itemType;
 
 
     public ItemRecyclerViewAdapter () {
@@ -34,6 +34,8 @@ public class ItemRecyclerViewAdapter
     public ItemRecyclerViewAdapter(Context context, List<Item> shoppingList,
                                    AddToCartListener cartListener, EditItemListener editListener,
                                    RemoveFromCartListener removeListener, String itemType) {
+        Log.d(TAG, "ViewType: " + itemType);
+
         this.context = context;
         this.shoppingList = shoppingList;
         this.cartListener = cartListener;
@@ -66,7 +68,7 @@ public class ItemRecyclerViewAdapter
         Button addToCart;
         Button removeButton;
 
-        public ItemHolder(@NonNull View itemView) {
+        public ItemHolder(@NonNull View itemView, String itemType) {
             super(itemView);
 
             if (itemType.equals("shopping")) {
@@ -100,7 +102,7 @@ public class ItemRecyclerViewAdapter
             view = inflater.inflate(R.layout.cart_card_layout, parent, false);
         }
 
-        return new ItemRecyclerViewAdapter.ItemHolder(view);
+        return new ItemRecyclerViewAdapter.ItemHolder(view, itemType);
     }
 
     /*

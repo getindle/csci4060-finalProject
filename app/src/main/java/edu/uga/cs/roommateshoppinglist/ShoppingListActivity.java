@@ -1,5 +1,6 @@
 package edu.uga.cs.roommateshoppinglist;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -27,6 +28,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -119,7 +121,8 @@ public class ShoppingListActivity extends AppCompatActivity
         drawerList.setOnItemClickListener((parent, view, position, id) -> {
             switch (position) {
                 case 0: // RECENTLY PURCHASED OPTION
-                    // [RECENTLY PURCHASED OPTION LOGIC]
+                    Intent intent = new Intent(view.getContext(), PurchasedListActivity.class);
+                    startActivity(intent);
                     break;
                 case 1: // BUTTON 2
                     // [BUTTON 2 LOGIC GOES HERE]

@@ -1,6 +1,8 @@
 package edu.uga.cs.roommateshoppinglist;
 
-public class Item {
+import java.io.Serializable;
+
+public class Item implements Serializable {
 
     private String itemName;
     private String itemQuantity;
@@ -42,6 +44,10 @@ public class Item {
     }
 
     public String getItemKey() { return itemKey; }
+
+    public void clearKey() {
+        itemKey = null;
+    }
 
     public boolean equals(String itemKey) {
 

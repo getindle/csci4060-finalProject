@@ -21,7 +21,7 @@ import android.widget.EditText;
 public class AddItemDialogFragment extends DialogFragment {
 
     private static final String TAG = "AddItemFragment";
-    private ShoppingListActivity shoppingListActivity;
+
     private EditText itemName;
     private EditText itemQuantity;
     private Button saveButton;
@@ -40,8 +40,8 @@ public class AddItemDialogFragment extends DialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        itemName = getView().findViewById(R.id.itemName);
-        itemQuantity = getView().findViewById(R.id.itemQuantity);
+        itemName = getView().findViewById(R.id.editItemName);
+        itemQuantity = getView().findViewById(R.id.editItemQuantity);
         saveButton = getView().findViewById(R.id.saveButton);
 
         saveButton.setOnClickListener(new View.OnClickListener() {
@@ -52,7 +52,8 @@ public class AddItemDialogFragment extends DialogFragment {
                 String quantity = itemQuantity.getText().toString();
 
                 // Add the new item
-                shoppingListActivity.saveNewItem(new Item(name, quantity));
+                AddItemDialogListener listener = (AddItemDialogListener) getActivity();
+                listener.saveNewItem(new Item(name, quantity));
 
                 // Close the dialog fragment
                 dismiss();
@@ -61,7 +62,4 @@ public class AddItemDialogFragment extends DialogFragment {
 
     }
 
-    public void setShoppingListActivity(ShoppingListActivity shoppingListActivity) {
-        this.shoppingListActivity = shoppingListActivity;
-    }
 }

@@ -1,10 +1,7 @@
 package edu.uga.cs.roommateshoppinglist;
 
-import android.app.AlertDialog;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.Pair;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,7 +20,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -32,9 +28,17 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
-public class ShoppingListActivity extends AppCompatActivity implements AddItemDialogFragment.AddItemDialogListener {
+public class ShoppingListActivity extends AppCompatActivity
+        implements AddItemDialogFragment.AddItemDialogListener,
+        ItemRecyclerViewAdapter.AddToCartListener,
+        ItemRecyclerViewAdapter.EditItemListener,
+        ItemRecyclerViewAdapter.RemoveFromCartListener,
+        EditItemDialogFragment.UpdateItemListener  {
 
     public static final String TAG = "ShoppingListActivity";
 
@@ -43,13 +47,16 @@ public class ShoppingListActivity extends AppCompatActivity implements AddItemDi
     private ActionBarDrawerToggle toggle;
 
     private List<Item> shoppingList;
+    private ArrayList<Item> cartList;
     RecyclerView recyclerView;
     ItemRecyclerViewAdapter itemRecyclerViewAdapter;
+    public static final String ITEM_TYPE = "shopping";
 
-    private List<Item> cartItems;
 
     private FirebaseDatabase database;
-    private DatabaseReference myRef;
+    private DatabaseReference rootRef;
+    private DatabaseReference shoppingListRef;
+    private DatabaseReference cartListRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,67 +75,22 @@ public class ShoppingListActivity extends AppCompatActivity implements AddItemDi
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        cartItems = new ArrayList<>();
+        cartList = new ArrayList<>();
 
-        // initialize recycler
+        // Initialize recycler
         recyclerView = findViewById(R.id.recyclerView);
         shoppingList = new ArrayList<>();
-        itemRecyclerViewAdapter = new ItemRecyclerViewAdapter(this, shoppingList);
+        itemRecyclerViewAdapter = new ItemRecyclerViewAdapter(this, shoppingList, this, this, null, ITEM_TYPE);
         recyclerView.setAdapter(itemRecyclerViewAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         // Initialize database
         database = FirebaseDatabase.getInstance();
-        myRef = database.getReference();
+        rootRef = database.getReference();
+        shoppingListRef = rootRef.child("shopping_list");
+        cartListRef = rootRef.child("cart_list");
 
-        // Set up a listener that listens for changes in Firebase
-        ChildEventListener childEventListener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-               Log.d(TAG, "onChildAdded: " + snapshot.getKey());
-
-                Item newItem = snapshot.getValue(Item.class);
-                newItem.setItemKey(snapshot.getKey());
-                shoppingList.add(newItem);
-                // itemRecyclerViewAdapter.sync(newItem);
-                itemRecyclerViewAdapter.notifyItemInserted(shoppingList.size() - 1);
-                recyclerView.smoothScrollToPosition(shoppingList.size() - 1);
-
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                Log.d(TAG, "onChildChanged: " + snapshot.getKey());
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-                Log.d(TAG, "onChildRemoved: " + snapshot.getKey());
-
-                Item deletedItem = snapshot.getValue(Item.class);
-
-                int deletedItemIndex = 0;
-                for (int i = 0; i < shoppingList.size(); i++) {
-                    if (shoppingList.get(i).equals(snapshot.getKey())) {
-                        deletedItemIndex = i;
-                        shoppingList.remove(i);
-                        break;
-                    }
-                }
-                itemRecyclerViewAdapter.notifyItemRemoved(deletedItemIndex);
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        };
-        myRef.child("shopping_list").addChildEventListener(childEventListener);
+        setUpChildEventListeners();
 
         // create drawer
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -167,6 +129,114 @@ public class ShoppingListActivity extends AppCompatActivity implements AddItemDi
         fab.setOnClickListener(new ShoppingListActivity.FloatingActionButtonClickListener());
     }
 
+    public void setUpChildEventListeners() {
+
+        shoppingListRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                Log.d(TAG, "onChildAdded: " + snapshot.getKey());
+
+                Item newItem = snapshot.getValue(Item.class);
+                newItem.setItemKey(snapshot.getKey());
+                shoppingList.add(newItem);
+                // itemRecyclerViewAdapter.sync(newItem);
+
+                runOnUiThread(() -> {
+                    itemRecyclerViewAdapter.notifyItemInserted(shoppingList.size() - 1);
+                    recyclerView.smoothScrollToPosition(shoppingList.size() - 1);
+                });
+
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                Log.d(TAG, "onChildChanged: " + snapshot.getKey());
+
+                Item updatedItem = snapshot.getValue(Item.class);
+
+                for (Item item : shoppingList) {
+                    if (item.equals(updatedItem.getItemKey())) {
+                        if (!Objects.equals(item.getItemName(), updatedItem.getItemName())) {
+                            item.setItemName(updatedItem.getItemName());
+                        }
+                        if (!Objects.equals(item.getItemQuantity(), updatedItem.getItemQuantity())) {
+                            item.setItemQuantity(updatedItem.getItemQuantity());
+                        }
+                    }
+                }
+
+                itemRecyclerViewAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                Log.d(TAG, "onChildRemoved: " + snapshot.getKey());
+
+                for (int i = 0; i < shoppingList.size(); i++) {
+                    if (shoppingList.get(i).equals(snapshot.getKey())) {
+                        shoppingList.remove(i);
+                        itemRecyclerViewAdapter.notifyItemRemoved(i);
+                        break;
+                    }
+                }
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+        cartListRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                Item cartItem = snapshot.getValue(Item.class);
+                cartItem.setItemKey(snapshot.getKey());
+                cartList.add(cartItem);
+
+                /*
+                An item that is added to the cart has its key cleared. This is how
+                we search for it in order to delete it from the shopping list.
+                 */
+                for (int i = 0; i < shoppingList.size(); i++) {
+                    if (shoppingList.get(i).getItemKey() == null) {
+                        shoppingList.remove(i);
+                        itemRecyclerViewAdapter.notifyItemRemoved(i);
+                        break;
+                    }
+                }
+
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
 
     /*
     Opens a dialog fragment to add a new item to the shopping list.
@@ -175,27 +245,82 @@ public class ShoppingListActivity extends AppCompatActivity implements AddItemDi
         @Override
         public void onClick(View view) {
             AddItemDialogFragment dialogFragment = new AddItemDialogFragment();
-            dialogFragment.setShoppingListActivity(ShoppingListActivity.this);
             dialogFragment.show(getSupportFragmentManager(), "AddItemFragment");
-
         }
     }
 
     /*
-    Update the shopping list with the new item by displaying to user and saving item in Firebase.
+    Update the shopping list with the new item and save item in Firebase.
      */
     public void saveNewItem(Item item) {
         Log.d(TAG, "ShoppingListActivity.saveNewItem");
 
-//        FirebaseDatabase database = FirebaseDatabase.getInstance();
-//        DatabaseReference itemRef = myRef.child("items");
-//        DatabaseReference newItemRef = itemRef.push();
-//        myRef.push().setValue(item);
-
         // Add a new item to the shopping list in the database
-        DatabaseReference newRef = myRef.child("shopping_list").push();
-        newRef.setValue(item).addOnSuccessListener(unused -> Log.d(TAG, "Item added successfully"));
+        shoppingListRef.push().setValue(item).addOnSuccessListener(
+                unused -> Log.d(TAG, "Item added successfully")
+        );
+    }
 
+    public void removeFromShoppingList(Item item) {
+        shoppingListRef.child(item.getItemKey()).removeValue().addOnSuccessListener(
+                unused -> Log.d(TAG, "removeFromShoppingList: Item removed")
+        );
+    }
+
+    /*
+    Open edit dialog fragment.
+     */
+    public void openEditItemFragment(Item item) {
+        EditItemDialogFragment editItemDialogFragment = EditItemDialogFragment.newInstance(item);
+        editItemDialogFragment.show(getSupportFragmentManager(), "edit_item");
+    }
+
+    public void updateItem(Item item) {
+        Map<String, Object> update = new HashMap<>();
+        update.put("itemName", item.getItemName());
+        update.put("itemQuantity", item.getItemQuantity());
+
+        shoppingListRef.child(item.getItemKey()).updateChildren(update);
+    }
+
+    /*
+    Update the shopping cart and save to Firebase.
+     */
+    public void addToCart(Item item) {
+
+        // Add a new item to the cart list after removing from shopping list
+        shoppingListRef.child(item.getItemKey()).removeValue().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Log.d(TAG, "addToCart: Item deleted from shopping list");
+
+                item.clearKey();
+
+                cartListRef.push().setValue(item).addOnSuccessListener(
+                        unused -> Log.d(TAG, "addToCart: Item added to cart list")
+                );
+
+            } else {
+                Log.e(TAG, "Update failed", task.getException());
+            }
+        });
+
+    }
+
+    public void removeFromCart(Item item) {
+        cartListRef.child(item.getItemKey()).removeValue().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Log.d(TAG, "removeFromCart: Item deleted from cart list");
+
+                item.clearKey();
+
+                shoppingListRef.push().setValue(item).addOnSuccessListener(
+                        unused -> Log.d(TAG, "removeFromCart: Item added to shopping list")
+                );
+
+            } else {
+                Log.e(TAG, "Update failed", task.getException());
+            }
+        });
     }
 
     @Override
@@ -218,22 +343,28 @@ public class ShoppingListActivity extends AppCompatActivity implements AddItemDi
         return true;
     }
 
-    /**
-     * Adds an item from the shopping list into the cart (basket).
-     *
-     * @param item the item to be added
-     */
-    public void addToCart(Item item) {
-        if (!cartItems.contains(item)) {
-            cartItems.add(item); // add item to cart/basket
-        } else {
-            Log.d(TAG, "Item already in cart: " + item.getItemName());
-        }
-    }
+//    /**
+//     * Adds an item from the shopping list into the cart (basket).
+//     *
+//     * @param item the item to be added
+//     */
+//    public void addToCart(Item item) {
+//        if (!cartItems.contains(item)) {
+//            cartItems.add(item); // add item to cart/basket
+//        } else {
+//            Log.d(TAG, "Item already in cart: " + item.getItemName());
+//        }
+//    }
 
     private void showCartDialogAlert() {
-        CartDialogFragment cartDialogFragment = new CartDialogFragment(cartItems);
+        CartDialogFragment cartDialogFragment = CartDialogFragment.newInstance(cartList);
         cartDialogFragment.show(getSupportFragmentManager(), "cartDialog");
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Log.d(TAG, "onResume");
     }
 }

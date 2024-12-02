@@ -12,24 +12,51 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerViewAdapter.ItemHolder> {
+public class ItemRecyclerViewAdapter
+        extends RecyclerView.Adapter<ItemRecyclerViewAdapter.ItemHolder> {
 
     public static final String TAG = "ItemRecyclerViewAdapter";
-    Context context;
-    List<Item> shoppingList;
 
-    public ItemRecyclerViewAdapter(Context context, List<Item> shoppingList) {
+    private Context context;
+    private List<Item> shoppingList;
+    private AddToCartListener cartListener;
+    private EditItemListener editListener;
+    private RemoveFromCartListener removeListener;
+    private static String itemType;
+
+
+    public ItemRecyclerViewAdapter () {
+
+    }
+
+    public ItemRecyclerViewAdapter(Context context, List<Item> shoppingList,
+                                   AddToCartListener cartListener, EditItemListener editListener,
+                                   RemoveFromCartListener removeListener, String itemType) {
         this.context = context;
-        // this.shoppingList = new ArrayList<>(shoppingList);
         this.shoppingList = shoppingList;
+        this.cartListener = cartListener;
+        this.editListener = editListener;
+        this.removeListener = removeListener;
+        this.itemType = itemType;
     }
 
-    public void sync(Item item) {
-        shoppingList.add(item);
+    public interface AddToCartListener {
+        void addToCart(Item item);
     }
+
+    public interface EditItemListener {
+        void openEditItemFragment(Item item);
+    }
+
+    public interface RemoveFromCartListener {
+        void removeFromCart(Item item);
+    }
+
+//    public void sync(Item item) {
+//        shoppingList.add(item);
+//    }
 
     public static class ItemHolder extends RecyclerView.ViewHolder {
 
@@ -37,14 +64,22 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
         TextView cardQuantity;
         Button editCard;
         Button addToCart;
+        Button removeButton;
 
         public ItemHolder(@NonNull View itemView) {
             super(itemView);
 
-            cardName = itemView.findViewById(R.id.cardName);
-            cardQuantity = itemView.findViewById(R.id.cardQuantity);
-            editCard = itemView.findViewById(R.id.editCard);
-            addToCart = itemView.findViewById(R.id.addToCart);
+            if (itemType.equals("shopping")) {
+                cardName = itemView.findViewById(R.id.cartCardName);
+                cardQuantity = itemView.findViewById(R.id.cartCardQuantity);
+                editCard = itemView.findViewById(R.id.editCard);
+                addToCart = itemView.findViewById(R.id.removeButton);
+            }
+            else {
+                cardName = itemView.findViewById(R.id.cartCardName);
+                cardQuantity = itemView.findViewById(R.id.cartCardQuantity);
+                removeButton = itemView.findViewById(R.id.removeButton);
+            }
         }
     }
 
@@ -55,7 +90,15 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
     @Override
     public ItemRecyclerViewAdapter.ItemHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(context);
-        View view = inflater.inflate(R.layout.item_card_layout, parent, false);
+
+        View view;
+        if (itemType.equals("shopping"))
+        {
+            view = inflater.inflate(R.layout.item_card_layout, parent, false);
+        }
+        else {
+            view = inflater.inflate(R.layout.cart_card_layout, parent, false);
+        }
 
         return new ItemRecyclerViewAdapter.ItemHolder(view);
     }
@@ -67,27 +110,37 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
     public void onBindViewHolder(@NonNull ItemRecyclerViewAdapter.ItemHolder holder, int position) {
 
         Item item = shoppingList.get(position);
+
         Log.d(TAG, "RecyclerViewAdapter.onBindViewHolder: " + item);
 
         holder.cardName.setText(item.getItemName());
         holder.cardQuantity.setText(String.format("%s%s", context.getString(R.string.quantity), item.getItemQuantity()));
 
-        holder.editCard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        if (itemType.equals("shopping")) {
 
-            }
-        });
-
-        holder.addToCart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (context instanceof ShoppingListActivity) {
-                    // call addToCart method located in ShoppingListActivity
-                    ((ShoppingListActivity) context).addToCart(item);
+            holder.editCard.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    editListener.openEditItemFragment(item);
                 }
-            }
-        });
+            });
+
+            holder.addToCart.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    cartListener.addToCart(item);
+                }
+            });
+        }
+        else {
+            holder.removeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    removeListener.removeFromCart(item);
+                }
+            });
+
+        }
     }
 
     /*
@@ -97,4 +150,5 @@ public class ItemRecyclerViewAdapter extends RecyclerView.Adapter<ItemRecyclerVi
     public int getItemCount() {
         return shoppingList.size();
     }
+
 }

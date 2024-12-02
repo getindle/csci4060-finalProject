@@ -12,27 +12,44 @@ import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CartDialogFragment extends DialogFragment {
-    private List<Item> cartItems;
+    private static final String ITEM_TYPE = "cart";
+    private List<Item> cartList;
 
-    // Constructor to pass the cart items to the dialog
-    public CartDialogFragment(List<Item> cartItems) {
-        this.cartItems = cartItems;
+
+    public static CartDialogFragment newInstance(ArrayList<Item> cartList) {
+        CartDialogFragment cartDialogFragment = new CartDialogFragment();
+        Bundle args = new Bundle();
+        args.putSerializable("cart_list", cartList);
+        cartDialogFragment.setArguments(args);
+        return cartDialogFragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        if (getArguments() != null) {
+            cartList = (ArrayList<Item>) getArguments().getSerializable("cart_list");
+        }
     }
 
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        // create alert dialog and inflate the view
+
+        // Create alert dialog and inflate the view
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_cart_items, null);
 
-        // set up recycler view in dialog and inflate
+        // Set up recycler view in dialog and inflate
         RecyclerView recyclerView = dialogView.findViewById(R.id.cart_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        ItemRecyclerViewAdapter adapter = new ItemRecyclerViewAdapter(getActivity(), cartItems);
+        ItemRecyclerViewAdapter adapter = new ItemRecyclerViewAdapter(getActivity(), cartList, null, null, (ShoppingListActivity) getActivity(), ITEM_TYPE);
         recyclerView.setAdapter(adapter);
 
         builder.setView(dialogView)
@@ -46,7 +63,7 @@ public class CartDialogFragment extends DialogFragment {
                 .setNegativeButton("Clear Cart", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        cartItems.clear();
+                        cartList.clear();
                         adapter.notifyDataSetChanged(); // update cart recycler view as cleared
                     }
                 });

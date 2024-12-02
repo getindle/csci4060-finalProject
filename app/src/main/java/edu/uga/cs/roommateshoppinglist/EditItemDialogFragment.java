@@ -78,6 +78,7 @@ public class EditItemDialogFragment extends DialogFragment {
             public void onClick(View view) {
                 RemoveItemListener listener = (RemoveItemListener) getActivity();
                 listener.removeFromShoppingList(item);
+                dismiss();
             }
         });
 

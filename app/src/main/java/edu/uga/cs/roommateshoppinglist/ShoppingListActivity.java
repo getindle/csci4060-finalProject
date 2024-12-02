@@ -38,7 +38,8 @@ public class ShoppingListActivity extends AppCompatActivity
         ItemRecyclerViewAdapter.AddToCartListener,
         ItemRecyclerViewAdapter.EditItemListener,
         ItemRecyclerViewAdapter.RemoveFromCartListener,
-        EditItemDialogFragment.UpdateItemListener  {
+        EditItemDialogFragment.UpdateItemListener,
+        EditItemDialogFragment.RemoveItemListener {
 
     public static final String TAG = "ShoppingListActivity";
 
@@ -57,6 +58,12 @@ public class ShoppingListActivity extends AppCompatActivity
     private DatabaseReference rootRef;
     private DatabaseReference shoppingListRef;
     private DatabaseReference cartListRef;
+
+    private CartDialogFragment cartDialogFragment;
+
+    public interface CartRecylerListener {
+       void updateRecycler(Item item);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -139,12 +146,8 @@ public class ShoppingListActivity extends AppCompatActivity
                 Item newItem = snapshot.getValue(Item.class);
                 newItem.setItemKey(snapshot.getKey());
                 shoppingList.add(newItem);
-                // itemRecyclerViewAdapter.sync(newItem);
-
-                runOnUiThread(() -> {
-                    itemRecyclerViewAdapter.notifyItemInserted(shoppingList.size() - 1);
-                    recyclerView.smoothScrollToPosition(shoppingList.size() - 1);
-                });
+                itemRecyclerViewAdapter.notifyItemInserted(shoppingList.size() - 1);
+                recyclerView.smoothScrollToPosition(shoppingList.size() - 1);
 
             }
 
@@ -222,6 +225,17 @@ public class ShoppingListActivity extends AppCompatActivity
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                // TODO: update the cart to reflect the removed item
+
+
+                for (int i = 0; i < cartList.size(); i++) {
+                    if (cartList.get(i).equals(snapshot.getKey())) {
+                        Log.d(TAG, "itemMatched");
+                        cartList.remove(i);
+                        cartDialogFragment.notifyAdapter(i);
+                        break;
+                    }
+                }
 
             }
 
@@ -307,20 +321,12 @@ public class ShoppingListActivity extends AppCompatActivity
     }
 
     public void removeFromCart(Item item) {
-        cartListRef.child(item.getItemKey()).removeValue().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Log.d(TAG, "removeFromCart: Item deleted from cart list");
+        cartListRef.child(item.getItemKey()).removeValue().addOnSuccessListener(
+                unused -> Log.d(TAG, "removeFromCart")
 
-                item.clearKey();
+        );
 
-                shoppingListRef.push().setValue(item).addOnSuccessListener(
-                        unused -> Log.d(TAG, "removeFromCart: Item added to shopping list")
-                );
-
-            } else {
-                Log.e(TAG, "Update failed", task.getException());
-            }
-        });
+        shoppingListRef.push().setValue(item);
     }
 
     @Override
@@ -357,7 +363,7 @@ public class ShoppingListActivity extends AppCompatActivity
 //    }
 
     private void showCartDialogAlert() {
-        CartDialogFragment cartDialogFragment = CartDialogFragment.newInstance(cartList);
+        cartDialogFragment = CartDialogFragment.newInstance(cartList);
         cartDialogFragment.show(getSupportFragmentManager(), "cartDialog");
     }
 

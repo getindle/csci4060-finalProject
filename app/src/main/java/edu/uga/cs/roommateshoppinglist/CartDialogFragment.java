@@ -19,6 +19,7 @@ import java.util.List;
 public class CartDialogFragment extends DialogFragment {
     private static final String ITEM_TYPE = "cart";
     private List<Item> cartList;
+    ItemRecyclerViewAdapter adapter;
 
 
     public static CartDialogFragment newInstance(ArrayList<Item> cartList) {
@@ -49,7 +50,7 @@ public class CartDialogFragment extends DialogFragment {
         // Set up recycler view in dialog and inflate
         RecyclerView recyclerView = dialogView.findViewById(R.id.cart_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        ItemRecyclerViewAdapter adapter = new ItemRecyclerViewAdapter(getActivity(), cartList, null, null, (ShoppingListActivity) getActivity(), ITEM_TYPE);
+        adapter = new ItemRecyclerViewAdapter(getActivity(), cartList, null, null, (ShoppingListActivity) getActivity(), ITEM_TYPE);
         recyclerView.setAdapter(adapter);
 
         builder.setView(dialogView)
@@ -70,5 +71,9 @@ public class CartDialogFragment extends DialogFragment {
         // THIS IS WHERE MAKE PURCHASE BUTTON CAN BE ADDED TO CART/BASKET DIALOG ALERT
 
         return builder.create();
+    }
+
+    public void notifyAdapter(int i) {
+        adapter.notifyItemRemoved(i);
     }
 }

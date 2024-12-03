@@ -24,6 +24,7 @@ public class ItemRecyclerViewAdapter
     private AddToCartListener cartListener;
     private EditItemListener editListener;
     private RemoveFromCartListener removeListener;
+    private PurchasedListListener removeFromPurchase;
     private String itemType;
 
 
@@ -33,7 +34,9 @@ public class ItemRecyclerViewAdapter
 
     public ItemRecyclerViewAdapter(Context context, List<Item> shoppingList,
                                    AddToCartListener cartListener, EditItemListener editListener,
-                                   RemoveFromCartListener removeListener, String itemType) {
+                                   RemoveFromCartListener removeListener, PurchasedListListener removeFromPurchase,
+                                   String itemType) {
+
         Log.d(TAG, "ViewType: " + itemType);
 
         this.context = context;
@@ -41,6 +44,7 @@ public class ItemRecyclerViewAdapter
         this.cartListener = cartListener;
         this.editListener = editListener;
         this.removeListener = removeListener;
+        this.removeFromPurchase = removeFromPurchase;
         this.itemType = itemType;
     }
 
@@ -56,9 +60,9 @@ public class ItemRecyclerViewAdapter
         void removeFromCart(Item item);
     }
 
-//    public void sync(Item item) {
-//        shoppingList.add(item);
-//    }
+    public interface PurchasedListListener {
+        void removeFromPurchasedList(Item item);
+    }
 
     public static class ItemHolder extends RecyclerView.ViewHolder {
 
@@ -134,14 +138,21 @@ public class ItemRecyclerViewAdapter
                 }
             });
         }
-        else {
+        else if (itemType.equals("cart_list")){
             holder.removeButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     removeListener.removeFromCart(item);
                 }
             });
-
+        }
+        else {
+            holder.removeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    removeFromPurchase.removeFromPurchasedList(item);
+                }
+            });
         }
     }
 

@@ -40,7 +40,7 @@ public class PurchasedListActivity extends AppCompatActivity implements ItemRecy
     private DatabaseReference purchasedListRef;
     private DatabaseReference shoppingListRef;
     private FirebaseDatabase database;
-    private List<Item> purchasedList;
+    private ArrayList<Item> purchasedList;
     private ArrayList<Item> removeList;
     private RecyclerView recyclerView;
     private ItemRecyclerViewAdapter itemRecyclerViewAdapter;
@@ -138,7 +138,20 @@ public class PurchasedListActivity extends AppCompatActivity implements ItemRecy
     private class FloatingSettleButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
-            // settle costs
+
+            for (int i = 0; i < purchasedList.size(); i++) {
+                Item item = purchasedList.get(i);
+                if (item.getItemKey().equals(item.getItemKey())) {
+                    purchasedList.remove(i);
+
+                    purchasedListRef.child(item.getItemKey()).removeValue().addOnSuccessListener(
+                            unused -> Log.d(TAG, "Item removed from purchased cart")
+                    );
+
+                    itemRecyclerViewAdapter.notifyItemRemoved(i);
+                }
+            }
+
             Toast.makeText(PurchasedListActivity.this, "Settling costs...", Toast.LENGTH_SHORT).show();
         }
     }
@@ -159,12 +172,19 @@ public class PurchasedListActivity extends AppCompatActivity implements ItemRecy
     public void removeFromPurchasedList(Item item) {
 
         for (int i = 0; i < purchasedList.size(); i++) {
-            Item currItem = purchasedList.get(i);
-            if (currItem.equals(item.getItemKey())) {
+            if (purchasedList.get(i).getItemKey().equals(item.getItemKey())) {
                 purchasedList.remove(i);
-                purchasedListRef.child(item.getItemKey()).removeValue();
+
+                purchasedListRef.child(item.getItemKey()).removeValue().addOnSuccessListener(
+                        unused -> Log.d(TAG, "Item removed from purchased cart")
+                );;
+
                 item.clearKey();
-                shoppingListRef.push().setValue(item);
+
+                shoppingListRef.push().setValue(item).addOnSuccessListener(
+                        unused -> Log.d(TAG, "Item added to shopping list")
+                );
+
                 itemRecyclerViewAdapter.notifyItemRemoved(i);
                 break;
             }

@@ -150,6 +150,7 @@ public class ItemRecyclerViewAdapter
             holder.removeButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+
                     removeFromPurchase.removeFromPurchasedList(item);
                 }
             });

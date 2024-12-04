@@ -67,6 +67,7 @@ public class ShoppingListActivity extends AppCompatActivity
 
     private CartDialogFragment cartDialogFragment;
 
+    String totalCartPrice;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,12 +121,14 @@ public class ShoppingListActivity extends AppCompatActivity
         ListView drawerList = findViewById(R.id.drawer_list);
         drawerList.setAdapter(arrayAdapter);
 
+
         // implement "on click" actions for when a hamburger option is clicked
         drawerList.setOnItemClickListener((parent, view, position, id) -> {
             switch (position) {
                 case 0: // RECENTLY PURCHASED OPTION
                     Bundle bundle = new Bundle();
                     bundle.putSerializable("purchased_list", purchasedList);
+                    bundle.putString("total_price", totalCartPrice);
                     Intent intent = new Intent(this, PurchasedListActivity.class);
                     intent.putExtras(bundle);
                     startActivity(intent);
@@ -377,7 +380,8 @@ public class ShoppingListActivity extends AppCompatActivity
         shoppingListRef.push().setValue(item);
     }
 
-    public void addToPurchasedList(List<Item> items) {
+    public void addToPurchasedList(List<Item> items, String totalPrice) {
+        totalCartPrice = totalPrice;
         for (Item item : items) {
             item.clearKey();
             purchasedListRef.push().setValue(item);

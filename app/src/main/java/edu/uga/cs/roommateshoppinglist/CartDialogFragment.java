@@ -75,6 +75,7 @@ public class CartDialogFragment extends DialogFragment {
         purchaseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                MainActivity.numOfPurchases++;
 
                 String price = totalPrice.getText().toString();
                 AddToPurchasedListListener listener = (AddToPurchasedListListener) getActivity();

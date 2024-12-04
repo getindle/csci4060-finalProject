@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -152,7 +153,57 @@ public class PurchasedListActivity extends AppCompatActivity implements ItemRecy
                 }
             }
 
-            Toast.makeText(PurchasedListActivity.this, "Settling costs...", Toast.LENGTH_SHORT).show();
+            TextView total = new TextView(view.getContext());
+            total.setText("Total Price: " + priceTv.getText().toString());
+
+            double userCost = 0.0;
+            double userAvgCost = 0.0;
+            String newPrice = priceTv.getText().toString().replace("$", "");
+
+            if (!newPrice.isEmpty()) {
+                try {
+                    double totalPrice = Double.parseDouble(newPrice);
+                    userCost = totalPrice / 2;
+                    userAvgCost = totalPrice / 2 / MainActivity.numOfPurchases;
+                } catch (NumberFormatException e) {
+                    Toast.makeText(view.getContext(), "Invalid price.", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(view.getContext(), "Must Enter a Price.", Toast.LENGTH_SHORT).show();
+            }
+
+            TextView user1Cost = new TextView(view.getContext());
+            user1Cost.setText("George's Cost: " + "$" + String.format("%.2f", userCost));
+
+            TextView user2Cost = new TextView(view.getContext());
+            user2Cost.setText("Santos's Cost: " + "$" + String.format("%.2f", userCost));
+
+            TextView user1AvgCost = new TextView(view.getContext());
+            user1AvgCost.setText("George's Average Cost Per Purchase: " + "$" + String.format("%.2f", userAvgCost));
+
+            TextView user2AvgCost = new TextView(view.getContext());
+            user2AvgCost.setText("Santos's Average Cost Per Purchase: " + "$" + String.format("%.2f", userAvgCost));
+
+            // add views in a vertical layout (row-by-row)
+            LinearLayout layout = new LinearLayout(view.getContext());
+            layout.setOrientation(LinearLayout.VERTICAL);
+            layout.addView(total);
+            layout.addView(user1Cost);
+            layout.addView(user2Cost);
+            layout.addView(user1AvgCost);
+            layout.addView(user2AvgCost);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+            builder.setTitle("Costs Are Settled!");
+            builder.setView(layout);
+            builder.setPositiveButton("OK", (dialog, which) -> {
+
+            });
+            // reset purchase #
+            MainActivity.numOfPurchases = 0;
+
+            // display alert dialog
+            builder.show();
         }
     }
 

@@ -138,6 +138,8 @@ public class ShoppingListActivity extends AppCompatActivity
                     break;
                 case 2: // HELP OPTION
                     // [HELP LOGIC GOES HERE]
+                    Intent loginIntent = new Intent(this, LoginActivity.class);
+                    startActivity(loginIntent);
                     break;
             }
             drawerLayout.closeDrawers(); // Close the drawer
@@ -386,22 +388,6 @@ public class ShoppingListActivity extends AppCompatActivity
             item.clearKey();
             purchasedListRef.push().setValue(item);
         }
-    }
-
-    public void removeFromPurchasedList(ArrayList<Item> items) {
-
-        for (Item item : items) {
-            purchasedListRef.child(item.getItemKey()).removeValue().addOnSuccessListener(
-                    unused -> Log.d(TAG, "removeFromPurchasedList: Removed")
-            );
-
-            item.clearKey();
-
-            shoppingListRef.push().setValue(item).addOnSuccessListener(
-                    unused -> Log.d(TAG, "removeFromPurchasedList: Item added to shopping list")
-            );
-        }
-
     }
 
     @Override

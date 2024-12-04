@@ -17,6 +17,9 @@ import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,8 +75,17 @@ public class CartDialogFragment extends DialogFragment {
         purchaseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 String price = totalPrice.getText().toString();
                 AddToPurchasedListListener listener = (AddToPurchasedListListener) getActivity();
+
+                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                DatabaseReference cartRef = database.getReference().child("cart_list");
+
+                for (Item item : cartList) {
+                    cartRef.child(item.getItemKey()).removeValue();
+                }
+
                 listener.addToPurchasedList(new ArrayList<>(cartList), price);
                 cartList.clear();
                 adapter.notifyDataSetChanged();
@@ -81,40 +93,6 @@ public class CartDialogFragment extends DialogFragment {
             }
         });
     }
-
-//    @Override
-//    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-//
-//        // Create alert dialog and inflate the view
-//        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-//        LayoutInflater inflater = getActivity().getLayoutInflater();
-//        View dialogView = inflater.inflate(R.layout.dialog_cart_items, null);
-//
-//        // Set up recycler view in dialog and inflate
-//        RecyclerView recyclerView = dialogView.findViewById(R.id.cart_recycler_view);
-//        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-//        adapter = new ItemRecyclerViewAdapter(getActivity(), cartList, null, null, (ShoppingListActivity) getActivity(), ITEM_TYPE);
-//        recyclerView.setAdapter(adapter);
-//
-//        builder.setView(dialogView)
-//                .setTitle("Cart Items")
-//                .setPositiveButton("Close", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int id) {
-//                        dismiss();
-//                    }
-//                })
-//                .setNegativeButton("Clear Cart", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int id) {
-//                        cartList.clear();
-//                        adapter.notifyDataSetChanged(); // update cart recycler view as cleared
-//                    }
-//                });
-//        // THIS IS WHERE MAKE PURCHASE BUTTON CAN BE ADDED TO CART/BASKET DIALOG ALERT
-//
-//        return builder.create();
-//    }
 
     public void notifyAdapter(int i) {
         adapter.notifyItemRemoved(i);

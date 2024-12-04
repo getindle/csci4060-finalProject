@@ -138,7 +138,7 @@ public class ItemRecyclerViewAdapter
                 }
             });
         }
-        else if (itemType.equals("cart_list")){
+        else if (itemType.equals("cart")){
             holder.removeButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

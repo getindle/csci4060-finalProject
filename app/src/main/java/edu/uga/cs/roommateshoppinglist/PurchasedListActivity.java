@@ -1,10 +1,15 @@
 package edu.uga.cs.roommateshoppinglist;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -24,6 +29,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +45,11 @@ public class PurchasedListActivity extends AppCompatActivity implements ItemRecy
     private RecyclerView recyclerView;
     private ItemRecyclerViewAdapter itemRecyclerViewAdapter;
     private String ITEM_TYPE = "purchased_list";
+
+    private String totalPrice;
+
+    private TextView priceTv;
+    private Button editButton;
 
 
     @Override
@@ -58,11 +69,12 @@ public class PurchasedListActivity extends AppCompatActivity implements ItemRecy
         }
 
         database = FirebaseDatabase.getInstance();
-        purchasedListRef = database.getReference().child("purchased_list");;
+        purchasedListRef = database.getReference().child("purchased_list");
         shoppingListRef = database.getReference().child("shopping_list");
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
+            totalPrice = bundle.getString("total_price");
             purchasedList = (ArrayList<Item>) bundle.getSerializable("purchased_list");
         }
         // Initialize recycler
@@ -74,8 +86,51 @@ public class PurchasedListActivity extends AppCompatActivity implements ItemRecy
         // set up floating action button
         FloatingActionButton settleCostsFab = findViewById(R.id.settleCostsFab);
         settleCostsFab.setOnClickListener(new PurchasedListActivity.FloatingSettleButtonClickListener());
+
+        editButton = findViewById(R.id.editButton);
+        editButton.setOnClickListener(new ButtonOnClickListener());
+
+        priceTv = findViewById(R.id.priceTv);
+
+        try {
+            double price = Double.parseDouble(totalPrice);
+            price = price * 1.07;
+            priceTv.setText(String.format("%.2f", price, " (w/ Tax)")); // update textview
+        } catch (NullPointerException npe) {
+            priceTv.setText("$0.00");
+        } catch (NumberFormatException nfe) {
+            priceTv.setText("0.00");
+        }
+
+        // priceTv.setText("$" + totalPrice);
     }
 
+    private class ButtonOnClickListener implements View.OnClickListener {
+        @Override
+        public void onClick(View view) {
+            EditText input = new EditText(view.getContext());
+            // input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+            input.setHint("Enter New Price Here");
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+            builder.setTitle("Total Price");
+            builder.setView(input);
+            builder.setPositiveButton("OK", (dialog, which) -> {
+                String newPrice = input.getText().toString();
+                if (!newPrice.isEmpty()) { // must enter a price
+                    try {
+                        double totalPrice = Double.parseDouble(newPrice);
+                        priceTv.setText("$" + String.format("%.2f", totalPrice)); // update textview
+                    } catch (NumberFormatException e) { // must enter numbers
+                        Toast.makeText(view.getContext(), "Invalid price.", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(view.getContext(), "Must Enter a Price.", Toast.LENGTH_SHORT).show();
+                }
+            });
+            builder.show(); // present alert dialog
+        }
+    }
 
     /*
     Opens a dialog fragment to add a new item to the shopping list.

@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,13 +23,13 @@ import java.util.List;
 
 public class CartDialogFragment extends DialogFragment {
     private static final String ITEM_TYPE = "cart";
-    private EditText totalPrice;
+    EditText totalPrice;
     private Button purchaseButton;
     private List<Item> cartList;
     ItemRecyclerViewAdapter adapter;
 
     public interface AddToPurchasedListListener {
-        void addToPurchasedList(List<Item> items);
+        void addToPurchasedList(List<Item> items, String price);
     }
 
     public static CartDialogFragment newInstance(ArrayList<Item> cartList) {
@@ -71,8 +72,9 @@ public class CartDialogFragment extends DialogFragment {
         purchaseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                String price = totalPrice.getText().toString();
                 AddToPurchasedListListener listener = (AddToPurchasedListListener) getActivity();
-                listener.addToPurchasedList(new ArrayList<>(cartList));
+                listener.addToPurchasedList(new ArrayList<>(cartList), price);
                 cartList.clear();
                 adapter.notifyDataSetChanged();
                 dismiss();

@@ -64,6 +64,12 @@ public class LoginActivity extends AppCompatActivity {
             String email = userEmail.getText().toString();
             String password = userPassword.getText().toString();
 
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(LoginActivity.this, "Enter credentials",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             mAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
                         @Override

@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -139,6 +140,7 @@ public class ShoppingListActivity extends AppCompatActivity
                 case 2: // HELP OPTION
                     // [LOGOUT LOGIC GOES HERE]
                     Intent loginIntent = new Intent(this, LoginActivity.class);
+                    FirebaseAuth.getInstance().signOut();
                     startActivity(loginIntent);
                     break;
             }

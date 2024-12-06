@@ -90,7 +90,7 @@ public class CartDialogFragment extends DialogFragment {
                 listener.addToPurchasedList(new ArrayList<>(cartList), price);
                 cartList.clear();
                 adapter.notifyDataSetChanged();
-                dismiss();
+                // dismiss();
             }
         });
     }

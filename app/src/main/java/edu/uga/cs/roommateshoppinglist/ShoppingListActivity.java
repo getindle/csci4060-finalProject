@@ -137,7 +137,7 @@ public class ShoppingListActivity extends AppCompatActivity
                     // [BUTTON 2 LOGIC GOES HERE]
                     break;
                 case 2: // HELP OPTION
-                    // [HELP LOGIC GOES HERE]
+                    // [LOGOUT LOGIC GOES HERE]
                     Intent loginIntent = new Intent(this, LoginActivity.class);
                     startActivity(loginIntent);
                     break;

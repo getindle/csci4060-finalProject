@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        Intent intent = new Intent(this, ShoppingListActivity.class);
+        Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent); // Start the new activity
         finish();
     }
